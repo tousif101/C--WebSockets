@@ -1,0 +1,130 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Welcome to Chat</title>
+  <meta name="description" content="Chat Interface">
+  <meta name="Tousif Chowdhury">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <script   src="https://code.jquery.com/jquery-3.2.1.slim.js"   integrity="sha256-tA8y0XqiwnpwmOIl3SGAcFl2RvxHjA8qp0+1uCGmRmg="   crossorigin="anonymous"></script>
+   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+
+<body>
+
+<style>
+    #FormFloat {
+    text-align:center;
+    #output{
+        text-align:center;
+    }
+    #wrap{
+         position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-top: -50px;
+        margin-left: -50px;
+        width: 100px;
+        height: 100px;
+    }
+}
+      
+</style>
+<div id = "wrap">
+ <div id="output"> </div>
+
+<div id = "Welcome">
+
+</div>
+
+<div id="usersinchat">
+
+</div>
+
+    <form name="message" action="" onsubmit="return false">
+        <input name="usermsg" type="text" id="usermsg"/>
+        <button id="send">Send</button>
+        <div id="output"></div>
+    </form>
+     <div id="wrapper">
+    <div id="chatbox">
+
+    </div>
+</div>
+
+</div>
+
+
+<script type="text/javascript">
+$( document ).ready(function() {
+    var username;
+    var users = JSON.parse(localStorage.getItem('users'));
+    var user = users[users.length - 1];
+    username = user.name
+
+    $('#Welcome').append("Welcome to chat "+ username)
+    $('#Welcome').append('<br />')
+    console.log(users)
+    for (var i =0; i<users.length;i++){
+       
+        $('#usersinchat').append("USER IN CHAT: "+ users[i].name)
+        $('#usersinchat').append('<br />')
+    }
+
+    var socket = new WebSocket("ws://127.0.0.1:5000/ws");
+
+    //When send it pushed 
+    $( "#send" ).click(function() {
+        var text = $('input[name="usermsg"]').val();
+        var message = username + " - " + text
+        console.log(message);
+        socket.send(message);
+        $('input[name="usermsg"]').val('')
+    });
+
+    //When the enter key is pushed in the message box
+    $('input[name="usermsg"]').keypress(function(e){
+        var text = $('input[name="usermsg"]').val();
+        var message = username + " - " + text
+        if(e.which == 13) {
+            e.preventDefault();
+            socket.send(message);
+            $('input[name="usermsg"]').val('')
+        }
+        else{
+            return;
+        }
+    });
+    //When Socket recieves a message
+    socket.onmessage = function (e) {
+            var message = e.data;
+			var values = e.data.split(" ");
+			var atSign = String.fromCharCode(64); 
+			var atSignUser = atSign + username;
+            var arrayLength = values.length;
+
+            $('#chatbox').append(message)
+            $('#chatbox').append('<br />')
+    };
+    //Any socket error, handle here 
+    socket.onerror = function (e) {
+    };
+
+    //Delete Everyone from the user array
+    for(var i= 0; i < users.length; i++){
+        users.splice(i,i);
+    }
+});
+
+
+
+</script>
+
+
+</body>
+</html>
